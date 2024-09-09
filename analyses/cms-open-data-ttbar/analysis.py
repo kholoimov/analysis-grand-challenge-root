@@ -3,6 +3,7 @@ import multiprocessing
 from pathlib import Path
 from time import time
 from typing import Tuple
+from statistical import fit_histograms
 
 from distributed import Client, get_worker, LocalCluster, SSHCluster
 import ml
@@ -456,6 +457,8 @@ def main() -> None:
         output_fname = args.output.split(".root")[0] + "_ml_inference.root"
         save_histos([r.histo for r in ml_results], output_fname=output_fname)
         print(f"Result histograms from ML inference step saved in file {output_fname}")
+
+    fit_histograms(filename = args.output)
 
 
 if __name__ == "__main__":
