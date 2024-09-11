@@ -44,6 +44,7 @@ class RebinningTool:
             obj = key.ReadObj()
             
             # Construct the full path of the object
+
             if path == "":
                 obj_path = obj.GetName()
             else: 

@@ -169,6 +169,12 @@ class DrawModel:
         ROOT.TColor.GetColor("#B0D6D5"),  # Soft Cyan
         ROOT.TColor.GetColor("#F3F9A6")   # Soft Yellow
     ]
+
+    def GetChannelPrefitGraph(self, number):
+        return self.hs_stacks[number]
+    
+    def GetChannelPostfitGraph(self, number):
+        return self.second_hs_stacks[number]
     
     def __init__(self, meas, ws):
         self.meas = meas

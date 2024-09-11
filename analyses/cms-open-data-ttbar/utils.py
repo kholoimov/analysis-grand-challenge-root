@@ -145,5 +145,24 @@ def postprocess_results(results: list[AGCResult]):
 
 def save_histos(results: list[ROOT.TH1D], output_fname: str):
     with ROOT.TFile.Open(output_fname, "recreate") as out_file:
+        names_list = []
         for result in results:
-            out_file.WriteObject(result, result.GetName().replace("_nominal", ""))
+            result.SetName(result.GetName().replace("_nominal", ""))
+            out_file.WriteObject(result, result.GetName())
+            names_list.append(result.GetName())
+
+        if "4j1b_ttbar_ME_var" in names_list \
+        and "4j1b_ttbar_PS_var" in names_list \
+        and "4j1b_wjets" in names_list \
+        and "4j2b_ttbar_ME_var" in names_list \
+        and "4j2b_ttbar_PS_var" in names_list \
+        and "4j2b_wjets" in names_list:
+            histogram_4j1b = out_file.Get("4j1b_wjets").Clone("4j1b_pseudodata")
+            histogram_4j1b.Add(out_file.Get("4j1b_ttbar_PS_var"), 0.5)
+            histogram_4j1b.Add(out_file.Get("4j1b_ttbar_ME_var"), 0.5)
+            out_file.WriteObject(histogram_4j1b, "4j1b_pseudodata")
+
+            histogram_4j2b = out_file.Get("4j2b_wjets").Clone("4j2b_pseudodata")
+            histogram_4j2b.Add(out_file.Get("4j2b_ttbar_PS_var"), 0.5)
+            histogram_4j2b.Add(out_file.Get("4j2b_ttbar_ME_var"), 0.5)
+            out_file.WriteObject(histogram_4j2b, "4j2b_pseudodata")

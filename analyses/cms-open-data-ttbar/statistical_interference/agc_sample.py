@@ -8,7 +8,7 @@ class AGC_Sample(ROOT.RooStats.HistFactory.Sample):
     """
     def __init__(self, name, histo_name, histo_file, histo_path = ""):
         ROOT.RooStats.HistFactory.Sample.__init__(self, name, histo_name, histo_file, histo_path)
-        self.output_path = 'data/HistFactoryExtra.root' # since ROOT need to collect histogram from file at some point, we store created histograms in additional file
+        self.output_path = 'statistical_data/HistFactoryExtra.root' # since ROOT need to collect histogram from file at some point, we store created histograms in additional file
                                                         # probably can be changed in next ROOT releases -> histograms can be stored just in RAM
         self.fInputFile = ""    # default input file for all systematics
 
