@@ -22,7 +22,8 @@ from utils import (
 XSEC_INFO = {
     "ttbar": 396.87 + 332.97,  # nonallhad + allhad, keep same x-sec for all
     "single_top_s_chan": 2.0268 + 1.2676,
-    "single_top_t_chan": (36.993 + 22.175) / 0.252,  # scale from lepton filter to inclusive
+    "single_top_t_chan": (36.993 + 22.175)
+    / 0.252,  # scale from lepton filter to inclusive
     "single_top_tW": 37.936 + 37.906,
     "wjets": 61457 * 0.252,  # e/mu+nu final states
 }
@@ -91,17 +92,31 @@ def parse_args() -> argparse.Namespace:
         "--hosts",
         help="A comma-separated list of worker node hostnames. Only required if --scheduler=dask-ssh, ignored otherwise.",
     )
-    p.add_argument("-v", "--verbose", help="Turn on verbose execution logs.", action="store_true")
+    p.add_argument(
+        "-v",
+        "--verbose",
+        help="Turn on verbose execution logs.",
+        action="store_true",
+    )
 
-    p.add_argument("--validation", help="Run the validation workflow with predicted RNG.", type = int, default = 0)
+    p.add_argument(
+        "--validation",
+        help="Run the validation workflow with predicted RNG.",
+        type=int,
+        default=0,
+    )
 
     return p.parse_args()
 
 
-def create_dask_client(scheduler: str, ncores: int, hosts: str, scheduler_address: str) -> Client:
+def create_dask_client(
+    scheduler: str, ncores: int, hosts: str, scheduler_address: str
+) -> Client:
     """Create a Dask distributed client."""
     if scheduler == "dask-local":
-        lc = LocalCluster(n_workers=ncores, threads_per_worker=1, processes=True)
+        lc = LocalCluster(
+            n_workers=ncores, threads_per_worker=1, processes=True
+        )
         return Client(lc)
 
     if scheduler == "dask-ssh":
@@ -112,7 +127,11 @@ def create_dask_client(scheduler: str, ncores: int, hosts: str, scheduler_addres
         sshc = SSHCluster(
             workers,
             connect_options={"known_hosts": None},
-            worker_options={"nprocs": ncores, "nthreads": 1, "memory_limit": "32GB"},
+            worker_options={
+                "nprocs": ncores,
+                "nthreads": 1,
+                "memory_limit": "32GB",
+            },
         )
         return Client(sshc)
 
@@ -131,7 +150,10 @@ def define_trijet_mass(df: ROOT.RDataFrame) -> ROOT.RDataFrame:
     df = df.Filter("Sum(Jet_btagCSVV2_cut > 0.5) > 1")
 
     # Build four-momentum vectors for each jet
-    df = df.Define("Jet_p4", "ConstructP4(Jet_pt_cut, Jet_eta_cut, Jet_phi_cut, Jet_mass_cut)")
+    df = df.Define(
+        "Jet_p4",
+        "ConstructP4(Jet_pt_cut, Jet_eta_cut, Jet_phi_cut, Jet_mass_cut)",
+    )
 
     # Build trijet combinations
     df = df.Define("Trijet_idx", "Combinations(Jet_pt_cut, 3)")
@@ -171,7 +193,12 @@ def define_trijet_mass(df: ROOT.RDataFrame) -> ROOT.RDataFrame:
 
 
 def book_histos(
-    df: ROOT.RDataFrame, process: str, variation: str, nevents: int, inference=False, use_rng_seed = False
+    df: ROOT.RDataFrame,
+    process: str,
+    variation: str,
+    nevents: int,
+    inference=False,
+    use_rng_seed=False,
 ) -> Tuple[list[AGCResult], list[AGCResult]]:
     """Return the pair of lists of RDataFrame results pertaining to the given process and variation.
     The first list contains histograms of reconstructed HT and trijet masses.
@@ -219,7 +246,9 @@ def book_histos(
             "Muon_pt > 30 && abs(Muon_eta) < 2.1 && Muon_sip3d < 4 && Muon_tightId && Muon_pfRelIso04_all < 0.15",
         )
         .Filter("Sum(Electron_mask) + Sum(Muon_mask) == 1")
-        .Define("Jet_mask", "Jet_pt > 30 && abs(Jet_eta) < 2.4 && Jet_jetId == 6")
+        .Define(
+            "Jet_mask", "Jet_pt > 30 && abs(Jet_eta) < 2.4 && Jet_jetId == 6"
+        )
         .Filter("Sum(Jet_mask) >= 4")
     )
 
@@ -257,22 +286,38 @@ def book_histos(
 
     # Book histograms and, if needed, their systematic variations
     results = []
-    for df, observable, region in zip([df4j1b, df4j2b], ["HT", "Trijet_mass"], ["4j1b", "4j2b"]):
+    for df, observable, region in zip(
+        [df4j1b, df4j2b], ["HT", "Trijet_mass"], ["4j1b", "4j2b"]
+    ):
         histo_model = ROOT.RDF.TH1DModel(
-            name=f"{region}_{process}_{variation}", title=process, nbinsx=25, xlow=50, xup=550
+            name=f"{region}_{process}_{variation}",
+            title=process,
+            nbinsx=25,
+            xlow=50,
+            xup=550,
         )
         nominal_histo = df.Histo1D(histo_model, observable, "Weights")
 
         if variation == "nominal":
             results.append(
                 AGCResult(
-                    nominal_histo, region, process, variation, nominal_histo, should_vary=True
+                    nominal_histo,
+                    region,
+                    process,
+                    variation,
+                    nominal_histo,
+                    should_vary=True,
                 )
             )
         else:
             results.append(
                 AGCResult(
-                    nominal_histo, region, process, variation, nominal_histo, should_vary=False
+                    nominal_histo,
+                    region,
+                    process,
+                    variation,
+                    nominal_histo,
+                    should_vary=False,
                 )
             )
         print(f"Booked histogram {histo_model.fName}")
@@ -300,7 +345,12 @@ def book_histos(
         if variation == "nominal":
             ml_results.append(
                 AGCResult(
-                    nominal_histo, feature.name, process, variation, nominal_histo, should_vary=True
+                    nominal_histo,
+                    feature.name,
+                    process,
+                    variation,
+                    nominal_histo,
+                    should_vary=True,
                 )
             )
         else:
@@ -340,7 +390,7 @@ def run_mt(
     args: argparse.Namespace,
     inputs: list[AGCInput],
     results: list[AGCResult],
-    ml_results: list[AGCResult]
+    ml_results: list[AGCResult],
 ) -> None:
     ROOT.EnableImplicitMT(args.ncores)
     print(f"Number of threads: {ROOT.GetThreadPoolSize()}")
@@ -351,7 +401,12 @@ def run_mt(
     for input in inputs:
         df = ROOT.RDataFrame("Events", input.paths)
         hist_list, ml_hist_list = book_histos(
-            df, input.process, input.variation, input.nevents, inference=args.inference, use_rng_seed = args.validation
+            df,
+            input.process,
+            input.variation,
+            input.nevents,
+            inference=args.inference,
+            use_rng_seed=args.validation,
         )
         results += hist_list
         ml_results += ml_hist_list
@@ -360,13 +415,17 @@ def run_mt(
         if r.should_vary:
             r.histo = ROOT.RDF.Experimental.VariationsFor(r.histo)
 
-    print(f"Building the computation graphs took {time() - program_start:.2f} seconds")
+    print(
+        f"Building the computation graphs took {time() - program_start:.2f} seconds"
+    )
 
     # Run the event loops for all processes and variations here
     run_graphs_start = time()
     ROOT.RDF.RunGraphs([r.nominal_histo for r in results + ml_results])
 
-    print(f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds")
+    print(
+        f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds"
+    )
 
 
 def run_distributed(
@@ -374,7 +433,7 @@ def run_distributed(
     args: argparse.Namespace,
     inputs: list[AGCInput],
     results: list[AGCResult],
-    ml_results: list[AGCResult]
+    ml_results: list[AGCResult],
 ) -> None:
     if args.inference:
 
@@ -386,11 +445,18 @@ def run_distributed(
     else:
         ROOT.RDF.Experimental.Distributed.initialize(load_cpp)
 
-    scheduler_address = args.scheduler_address if args.scheduler_address else ""
-    with create_dask_client(args.scheduler, args.ncores, args.hosts, scheduler_address) as client:
+    scheduler_address = (
+        args.scheduler_address if args.scheduler_address else ""
+    )
+    with create_dask_client(
+        args.scheduler, args.ncores, args.hosts, scheduler_address
+    ) as client:
         for input in inputs:
             df = ROOT.RDF.Experimental.Distributed.Dask.RDataFrame(
-                "Events", input.paths, daskclient=client, npartitions=args.npartitions
+                "Events",
+                input.paths,
+                daskclient=client,
+                npartitions=args.npartitions,
             )
             df._headnode.backend.distribute_unique_paths(
                 [
@@ -402,22 +468,35 @@ def run_distributed(
                 ]
             )
             hist_list, ml_hist_list = book_histos(
-                df, input.process, input.variation, input.nevents, inference=args.inference, use_rng_seed = args.validation
+                df,
+                input.process,
+                input.variation,
+                input.nevents,
+                inference=args.inference,
+                use_rng_seed=args.validation,
             )
             results += hist_list
             ml_results += ml_hist_list
 
         for r in results + ml_results:
             if r.should_vary:
-                r.histo = ROOT.RDF.Experimental.Distributed.VariationsFor(r.histo)
+                r.histo = ROOT.RDF.Experimental.Distributed.VariationsFor(
+                    r.histo
+                )
 
-        print(f"Building the computation graphs took {time() - program_start:.2f} seconds")
+        print(
+            f"Building the computation graphs took {time() - program_start:.2f} seconds"
+        )
 
         # Run the event loops for all processes and variations here
         run_graphs_start = time()
-        ROOT.RDF.Experimental.Distributed.RunGraphs([r.nominal_histo for r in results + ml_results])
+        ROOT.RDF.Experimental.Distributed.RunGraphs(
+            [r.nominal_histo for r in results + ml_results]
+        )
 
-        print(f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds")
+        print(
+            f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds"
+        )
 
 
 def main() -> None:
@@ -428,11 +507,13 @@ def main() -> None:
     ROOT.TH1.AddDirectory(False)
     # Disable interactive graphics: avoids canvases flashing on screen before we save them to file
     ROOT.gROOT.SetBatch(True)
-    
+
     if args.verbose:
         # Set higher RDF verbosity for the rest of the program.
         # To only change the verbosity in a given scope, use ROOT.Experimental.RLogScopedVerbosity.
-        ROOT.Detail.RDF.RDFLogChannel().SetVerbosity(ROOT.Experimental.ELogLevel.kInfo)
+        ROOT.Detail.RDF.RDFLogChannel().SetVerbosity(
+            ROOT.Experimental.ELogLevel.kInfo
+        )
 
     inputs: list[AGCInput] = retrieve_inputs(
         args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache
@@ -463,9 +544,11 @@ def main() -> None:
         save_ml_plots(ml_results)
         output_fname = args.output.split(".root")[0] + "_ml_inference.root"
         save_histos([r.histo for r in ml_results], output_fname=output_fname)
-        print(f"Result histograms from ML inference step saved in file {output_fname}")
+        print(
+            f"Result histograms from ML inference step saved in file {output_fname}"
+        )
 
-    fit_histograms(filename = args.output)
+    fit_histograms(filename=args.output)
 
 
 if __name__ == "__main__":

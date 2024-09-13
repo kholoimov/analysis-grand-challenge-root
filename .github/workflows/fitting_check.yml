@@ -1,0 +1,51 @@
+name: Run PyROOT Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-pyroot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up ROOT environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev cmake g++ gcc binutils libx11-dev libncurses5-dev libssl-dev \
+              libxpm-dev libxft-dev libxml2-dev libz-dev libxext-dev python3-dev
+          wget  https://root.cern/download/root_v6.32.04.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
+          tar -xzvf root_v6.32.04.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
+          source root/bin/thisroot.sh
+          echo "ROOT is set up"
+
+      - name: Run PyROOT script
+        run: |
+          source root/bin/thisroot.sh
+          sudo apt-get install binutils cmake dpkg-dev g++ gcc libssl-dev git libx11-dev \
+              libxext-dev libxft-dev libxpm-dev python3 libtbb-dev libgif-dev xrootd-client
+          pip install numpy plotting distributed tqdm
+          cd analyses/cms-open-data-ttbar/
+          python analysis.py --n-max-files-per-sample 1 --remote-data-prefix='root://eospublic.cern.ch//eos/root-eos/AGC' --validation 1
+
+      - name: Run comparsion
+        run: |
+          source root/bin/thisroot.sh
+          cd analyses/cms-open-data-ttbar/
+          python reference/fitResults/validate_fit_result.py  > output.txt
+
+      - name: Compare output with expected
+        run: |
+          diff analyses/cms-open-data-ttbar/output.txt analyses/cms-open-data-ttbar/reference/fitResults/workflow/file1
+          
+      - name: Check for differences
+        if: failure() # This step will be executed if the diff command finds differences
+        run: |
+          echo "Test failed: Output does not match expected result."

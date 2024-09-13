@@ -1,6 +1,7 @@
 import ROOT
 
-class RebinningTool: 
+
+class RebinningTool:
     """
     Rebinning tool, which can be used for rebinning and cutting edges
     Save histograms to new .root file, which have structure as input one
@@ -9,9 +10,9 @@ class RebinningTool:
     set_xmax: set upper edge for all histograms
     set_rebin: set rebin coefficient
 
-    example of usage: 
+    example of usage:
 
-    rebinning_tool = RebinningTool() 
+    rebinning_tool = RebinningTool()
     rebinning_tool.set_xmin(110) # if xmax was not set -> keep original one
     rebinning_tool.set_rebin(2)
     rebinning_tool.set_input_path("data/histograms.root")
@@ -42,12 +43,12 @@ class RebinningTool:
         for key in keys:
             # Get the object associated with the key
             obj = key.ReadObj()
-            
+
             # Construct the full path of the object
 
             if path == "":
                 obj_path = obj.GetName()
-            else: 
+            else:
                 obj_path = path + "/" + obj.GetName()
 
             # Check if the object is a directory
@@ -60,7 +61,7 @@ class RebinningTool:
 
     def is_integer(self, value):
         return int(value) == value
-    
+
     def rebin_histogram(self, original):
         if not self.fRebinning:
             return original
@@ -75,36 +76,54 @@ class RebinningTool:
             right_edge = original.GetXaxis().GetXmax()
 
         original_bin_width = original.GetXaxis().GetBinWidth(1)
-        assert_check_left = (left_edge - original.GetXaxis().GetXmin()) / original_bin_width
-        assert_check_right = (original.GetXaxis().GetXmax() - right_edge) / original_bin_width
+        assert_check_left = (
+            left_edge - original.GetXaxis().GetXmin()
+        ) / original_bin_width
+        assert_check_right = (
+            original.GetXaxis().GetXmax() - right_edge
+        ) / original_bin_width
 
-        if not self.is_integer(assert_check_left) or not self.is_integer(assert_check_right):
-            print("Error: The left_edge and right_edge are not multiples of the original bin width")
+        if not self.is_integer(assert_check_left) or not self.is_integer(
+            assert_check_right
+        ):
+            print(
+                "Error: The left_edge and right_edge are not multiples of the original bin width"
+            )
             return original
 
-        number_of_remove_bins = ((left_edge - original.GetXaxis().GetXmin()) + 
-                                 (original.GetXaxis().GetXmax() - right_edge)) / original_bin_width
+        number_of_remove_bins = (
+            (left_edge - original.GetXaxis().GetXmin())
+            + (original.GetXaxis().GetXmax() - right_edge)
+        ) / original_bin_width
         new_nbins = int(original.GetNbinsX() - number_of_remove_bins)
-        
-        original_new = ROOT.TH1F(original.GetName() + "temp_rebin_clone", original.GetTitle(), new_nbins, left_edge, right_edge)
-        skipped_bins_left = int((left_edge - original.GetXaxis().GetXmin()) / original_bin_width)
-        
+
+        original_new = ROOT.TH1F(
+            original.GetName() + "temp_rebin_clone",
+            original.GetTitle(),
+            new_nbins,
+            left_edge,
+            right_edge,
+        )
+        skipped_bins_left = int(
+            (left_edge - original.GetXaxis().GetXmin()) / original_bin_width
+        )
+
         for i in range(1, new_nbins + 1):
             bin_idx = i + skipped_bins_left
             original_new.SetBinContent(i, original.GetBinContent(bin_idx))
             original_new.SetBinError(i, original.GetBinError(bin_idx))
-        
+
         output = original_new.Rebin(self.fRebin)
         output.SetDirectory(ROOT.nullptr)
 
         return output
-       
-    def apply_rebinning(self, input_file_path = None, output_file_path = None):
+
+    def apply_rebinning(self, input_file_path=None, output_file_path=None):
         if input_file_path is None:
             input_file_path = self.input_path
         if output_file_path is None:
             output_file_path = self.output_path
-            
+
         file = ROOT.TFile(input_file_path, "READ")
 
         output_file = ROOT.TFile(output_file_path, "RECREATE")
