@@ -19,12 +19,28 @@ inline double random_gaus()
    return d(gen);
 }
 
-inline ROOT::RVecF jet_pt_resolution(std::size_t size)
+inline double predicted_gaus(std::mt19937& gen)
+{
+   std::normal_distribution<double> d{1, 0.1};
+   return d(gen);
+}
+
+inline ROOT::RVecF jet_pt_resolution(std::size_t size, int use_rng_seed)
 {
    // normal distribution with 5% variations, shape matches jets
    ROOT::RVecF res(size);
-   std::generate(std::begin(res), std::end(res), []()
-                 { return random_gaus(); });
+
+   if (use_rng_seed)
+   {
+      std::mt19937 gen{16123621};
+      std::generate(std::begin(res), std::end(res), [&gen]()
+                    { return predicted_gaus(gen); });
+   }
+   else
+   {
+      std::generate(std::begin(res), std::end(res), []()
+                  { return random_gaus(); });
+   }
    return res;
 }
 

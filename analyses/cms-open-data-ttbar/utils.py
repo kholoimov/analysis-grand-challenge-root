@@ -142,12 +142,21 @@ def postprocess_results(results: list[AGCResult]):
 
     return new_results
 
+def simplify_histo_name(name) -> str:
+    """Simplify histogram name by removing the process and nominal variation."""
+    if "_nominal" in name:
+        name = name.replace("_nominal", "")
+    if "_Jet" in name:
+        name = name.split("_Jet")[0]
+    if "_Weights" in name:
+        name = name.split("_Weights")[0]
+    return name
 
 def save_histos(results: list[ROOT.TH1D], output_fname: str):
     with ROOT.TFile.Open(output_fname, "recreate") as out_file:
         names_list = []
         for result in results:
-            result.SetName(result.GetName().replace("_nominal", ""))
+            result.SetName(simplify_histo_name(result.GetName()))
             out_file.WriteObject(result, result.GetName())
             names_list.append(result.GetName())
 

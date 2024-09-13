@@ -119,9 +119,6 @@ class Visualization:
                 self.hh.Fill(internal_index + 0.5, number_of_inter_params - internal__internal_index - 0.5, corr_matrix_before[i][j])
                 internal__internal_index += 1    
 
-            if par.GetName() == "tt_norm":
-                print(i)
-
             self.hh.GetXaxis().SetBinLabel(internal_index + 1, final_parameters[i].GetName().split("alpha_")[-1])
             self.hh.GetYaxis().SetBinLabel(number_of_inter_params - internal_index, final_parameters[i].GetName().split("alpha_")[-1])
             internal_index += 1

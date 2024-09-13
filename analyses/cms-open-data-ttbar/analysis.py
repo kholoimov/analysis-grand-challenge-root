@@ -93,6 +93,8 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("-v", "--verbose", help="Turn on verbose execution logs.", action="store_true")
 
+    p.add_argument("--validation", help="Run the validation workflow with predicted RNG.", type = int, default = 0)
+
     return p.parse_args()
 
 
@@ -169,7 +171,7 @@ def define_trijet_mass(df: ROOT.RDataFrame) -> ROOT.RDataFrame:
 
 
 def book_histos(
-    df: ROOT.RDataFrame, process: str, variation: str, nevents: int, inference=False
+    df: ROOT.RDataFrame, process: str, variation: str, nevents: int, inference=False, use_rng_seed = False
 ) -> Tuple[list[AGCResult], list[AGCResult]]:
     """Return the pair of lists of RDataFrame results pertaining to the given process and variation.
     The first list contains histograms of reconstructed HT and trijet masses.
@@ -180,6 +182,11 @@ def book_histos(
     xsec_weight = x_sec * lumi / nevents
     df = df.Define("Weights", str(xsec_weight))  # default weights
 
+    if use_rng_seed:
+        str_seed = "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt.size(), 1)}"
+    else:
+        str_seed = "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt.size(), 0)}"
+
     if variation == "nominal":
         # Jet_pt variations definition
         # pt_scale_up() and pt_res_up(jet_pt) return scaling factors applying to jet_pt
@@ -187,7 +194,7 @@ def book_histos(
         # pt_res_up(jet_pt) - jet resolution systematic
         df = df.Vary(
             "Jet_pt",
-            "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt.size())}",
+            str_seed,
             ["pt_scale_up", "pt_res_up"],
         )
 
@@ -333,7 +340,7 @@ def run_mt(
     args: argparse.Namespace,
     inputs: list[AGCInput],
     results: list[AGCResult],
-    ml_results: list[AGCResult],
+    ml_results: list[AGCResult]
 ) -> None:
     ROOT.EnableImplicitMT(args.ncores)
     print(f"Number of threads: {ROOT.GetThreadPoolSize()}")
@@ -344,7 +351,7 @@ def run_mt(
     for input in inputs:
         df = ROOT.RDataFrame("Events", input.paths)
         hist_list, ml_hist_list = book_histos(
-            df, input.process, input.variation, input.nevents, inference=args.inference
+            df, input.process, input.variation, input.nevents, inference=args.inference, use_rng_seed = args.validation
         )
         results += hist_list
         ml_results += ml_hist_list
@@ -367,7 +374,7 @@ def run_distributed(
     args: argparse.Namespace,
     inputs: list[AGCInput],
     results: list[AGCResult],
-    ml_results: list[AGCResult],
+    ml_results: list[AGCResult]
 ) -> None:
     if args.inference:
 
@@ -395,7 +402,7 @@ def run_distributed(
                 ]
             )
             hist_list, ml_hist_list = book_histos(
-                df, input.process, input.variation, input.nevents, inference=args.inference
+                df, input.process, input.variation, input.nevents, inference=args.inference, use_rng_seed = args.validation
             )
             results += hist_list
             ml_results += ml_hist_list
@@ -421,7 +428,7 @@ def main() -> None:
     ROOT.TH1.AddDirectory(False)
     # Disable interactive graphics: avoids canvases flashing on screen before we save them to file
     ROOT.gROOT.SetBatch(True)
-
+    
     if args.verbose:
         # Set higher RDF verbosity for the rest of the program.
         # To only change the verbosity in a given scope, use ROOT.Experimental.RLogScopedVerbosity.
