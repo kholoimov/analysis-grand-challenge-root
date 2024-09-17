@@ -49,6 +49,7 @@ jobs:
         if: env.RESULT_FITRESULTS == 'fail'
         run: |
           echo "Test failed: fitResults validation output does not match expected result."
+          exit 1
 
       - name: Compare histograms validation output with expected
         id: histograms
@@ -66,3 +67,4 @@ jobs:
         if: env.RESULT_HISTOGRAMS == 'fail'
         run: |
           echo "Test failed: Histograms validation output does not match expected result."
+          exit 1
