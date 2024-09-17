@@ -38,7 +38,7 @@ def fit_histograms(filename=""):
 
     channel = ROOT.RooStats.HistFactory.Channel("channel_4j1b_CR")
     channel.SetData("4j1b_pseudodata", input_file)
-    channel.SetStatErrorConfig(0.001, "Gaussian")
+    channel.SetStatErrorConfig(0.5, "Gaussian")
 
     ttbar = AGC_Sample("ttbar", "4j1b_ttbar", input_file)
     ttbar.SetSystematicsInputFile(
@@ -234,7 +234,7 @@ def fit_histograms(filename=""):
 
     channel_2b = ROOT.RooStats.HistFactory.Channel("channel_4j2b_SR")
     channel_2b.SetData("4j2b_pseudodata", input_file)
-    channel_2b.SetStatErrorConfig(0.001, "Gaussian")
+    channel_2b.SetStatErrorConfig(0.5, "Gaussian")
 
     ttbar = AGC_Sample("ttbar", "4j2b_ttbar", input_file)
     ttbar.AddOverallSys(lumi_systematics)
