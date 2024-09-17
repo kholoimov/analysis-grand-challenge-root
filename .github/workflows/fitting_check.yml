@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  run-pyroot:
+  run-cms-open-data-ttbar-analysis:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,29 +31,41 @@ jobs:
         run: |
           source root/bin/thisroot.sh
           cd analyses/cms-open-data-ttbar/
-          python analysis.py --n-max-files-per-sample 1 --remote-data-prefix='root://eospublic.cern.ch//eos/root-eos/AGC' --validation 1
+          ./validate | tee output.txt
 
-      - name: Run validation sequences
-        run: |
-          source root/bin/thisroot.sh
-          cd analyses/cms-open-data-ttbar/
-          python validate_histograms.py --histos histograms.root --reference reference/histos_1_file_per_process.json > output_histograms.txt
-          python reference/fitResults/validate_fit_result.py  > output.txt
-
-      - name: Compare fitResults output with expected
-        run: |
-          diff analyses/cms-open-data-ttbar/output.txt .github/workflows/validation/fitResuts_1_file_validation_reference.yml
-
-      - name: FitResults validation
-        if: failure() # This step will be executed if the diff command finds differences
-        run: |
-          echo "Test failed: fitResults validation output does not match expected result."
-      
       - name: Compare histograms validation output with expected
+        id: histograms
         run: |
-          diff analyses/cms-open-data-ttbar/output_histograms.txt .github/workflows/validation/histograms_1_file_validation_reference.yml
-          
-      - name: Histograms validationw
-        if: failure() # This step will be executed if the diff command finds differences
+          cd analyses/cms-open-data-ttbar/
+          if grep -q "Test failed: Histograms validation output does not match expected result." output.txt; then
+            echo "Histograms validation failed."
+            echo "RESULT_HISTOGRAMS=fail" >> $GITHUB_ENV
+          else
+            echo "Histograms validation passed."
+            echo "RESULT_HISTOGRAMS=pass" >> $GITHUB_ENV
+          fi
+
+      - name: Histograms validation
+        if: env.RESULT_HISTOGRAMS == 'fail'
         run: |
           echo "Test failed: Histograms validation output does not match expected result."
+          exit 1
+          
+      - name: Run validation sequences for fitResults
+        id: fitresults
+        run: |
+          cd analyses/cms-open-data-ttbar/
+          if grep -q "Test failed: fitResults validation output does not match expected result." output.txt; then
+            echo "fitResults validation failed."
+            echo "RESULT_FITRESULTS=fail" >> $GITHUB_ENV
+          else
+            echo "fitResults validation passed."
+            echo "RESULT_FITRESULTS=pass" >> $GITHUB_ENV
+          fi
+
+      - name: FitResults validation
+        if: env.RESULT_FITRESULTS == 'fail'
+        run: |
+          echo "Test failed: fitResults validation output does not match expected result."
+          exit 1
+
