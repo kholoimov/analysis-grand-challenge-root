@@ -1,4 +1,4 @@
-name: Run PyROOT Tests
+name: Validate CMS Open Data ttbar analysis
 
 on:
   push:
@@ -19,33 +19,41 @@ jobs:
       - name: Set up ROOT environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev cmake g++ gcc binutils libx11-dev libncurses5-dev libssl-dev \
-              libxpm-dev libxft-dev libxml2-dev libz-dev libxext-dev python3-dev
+          sudo apt-get install -y dpkg-dev cmake g++ gcc binutils libx11-dev libncurses5-dev libssl-dev libxpm-dev \
+            libxft-dev libxml2-dev libz-dev libxext-dev python3-dev git libtbb-dev libgif-dev xrootd-client python3
+          pip install numpy plotting distributed tqdm uproot
           wget  https://root.cern/download/root_v6.32.04.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
           tar -xzvf root_v6.32.04.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz
           source root/bin/thisroot.sh
           echo "ROOT is set up"
 
-      - name: Run PyROOT script
+      - name: Run Analysis
         run: |
           source root/bin/thisroot.sh
-          sudo apt-get install binutils cmake dpkg-dev g++ gcc libssl-dev git libx11-dev \
-              libxext-dev libxft-dev libxpm-dev python3 libtbb-dev libgif-dev xrootd-client
-          pip install numpy plotting distributed tqdm
           cd analyses/cms-open-data-ttbar/
           python analysis.py --n-max-files-per-sample 1 --remote-data-prefix='root://eospublic.cern.ch//eos/root-eos/AGC' --validation 1
 
-      - name: Run comparsion
+      - name: Run validation sequences
         run: |
           source root/bin/thisroot.sh
           cd analyses/cms-open-data-ttbar/
+          python validate_histograms.py --histos histograms.root --reference reference/histos_1_file_per_process.json > output_histograms.txt
           python reference/fitResults/validate_fit_result.py  > output.txt
 
-      - name: Compare output with expected
+      - name: Compare fitResults output with expected
         run: |
-          diff analyses/cms-open-data-ttbar/output.txt analyses/cms-open-data-ttbar/reference/fitResults/workflow/file1
-          
-      - name: Check for differences
+          diff analyses/cms-open-data-ttbar/output.txt .github/workflows/validation/fitResuts_1_file_validation_reference.yml
+
+      - name: FitResults validation
         if: failure() # This step will be executed if the diff command finds differences
         run: |
-          echo "Test failed: Output does not match expected result."
+          echo "Test failed: fitResults validation output does not match expected result."
+      
+      - name: Compare histograms validation output with expected
+        run: |
+          diff analyses/cms-open-data-ttbar/output_histograms.txt .github/workflows/validation/histograms_1_file_validation_reference.yml
+          
+      - name: Histograms validationw
+        if: failure() # This step will be executed if the diff command finds differences
+        run: |
+          echo "Test failed: Histograms validation output does not match expected result."
