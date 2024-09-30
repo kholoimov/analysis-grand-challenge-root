@@ -1,4 +1,5 @@
 import ROOT
+import os
 
 
 class RebinningTool:
@@ -46,10 +47,7 @@ class RebinningTool:
 
             # Construct the full path of the object
 
-            if path == "":
-                obj_path = obj.GetName()
-            else:
-                obj_path = path + "/" + obj.GetName()
+            obj_path = os.path.join(path, obj.GetName())
 
             # Check if the object is a directory
             if obj.InheritsFrom("TDirectory"):

@@ -1,6 +1,6 @@
 import ROOT
 
-class AGC_Sample(ROOT.RooStats.HistFactory.Sample):
+class AGCSample(ROOT.RooStats.HistFactory.Sample):
     """
     class created to cover extra functions, which are implemented in cabinetry, but missed in cabinetry
     """
@@ -145,20 +145,11 @@ class AGC_Sample(ROOT.RooStats.HistFactory.Sample):
 
         hist_nominal_file = ROOT.TFile(self.GetInputFile(), "READ")
         hist_nominal_name = self.GetHistoName()
-        hist_nominal_directory = hist_nominal_file.GetDirectory(
-            self.GetHistoPath()
-        )
+        hist_nominal_directory = hist_nominal_file.GetDirectory(self.GetHistoPath())
         hist_nominal = hist_nominal_directory.Get(hist_nominal_name)
 
         norm_factor_up = hist_top.Integral() / hist_nominal.Integral()
-        h_new = hist_top.Clone(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_up_clone"
-        )
+        h_new = hist_top.Clone(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_up_clone")
         h_new.Scale(1 / norm_factor_up)
 
         h_down = hist_nominal.Clone(
@@ -240,14 +231,7 @@ class AGC_Sample(ROOT.RooStats.HistFactory.Sample):
         hist_nominal = hist_nominal_directory.Get(hist_nominal_name)
 
         norm_factor_up = hist_top.Integral() / hist_nominal.Integral()
-        h_new_up = hist_top.Clone(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_up_clone"
-        )
+        h_new_up = hist_top.Clone(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_up_clone")
         h_new_up.Scale(1 / norm_factor_up)
 
         file_down = ROOT.TFile(histofile_down, "READ")

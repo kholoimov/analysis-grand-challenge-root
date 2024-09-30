@@ -664,7 +664,7 @@ class DrawModel:
                 up_value = central_value + unc
 
                 if up_value > maximum_y_val:
-                    maximum_y_val = up_value  # if box are over upper limit -> we are goint to move upper limit after
+                    maximum_y_val = up_value  # if box are over upper limit -> we are going to move upper limit after
 
                 self.boxes += [
                     ROOT.TBox(leftEdge, down_value, rightEdge, up_value)

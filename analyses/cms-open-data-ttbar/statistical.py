@@ -1,12 +1,14 @@
 import ROOT
 import os
-from statistical_interference.agc_sample import AGC_Sample
+from statistical_interference.agc_sample import AGCSample
 from statistical_interference.rebinning_tool import RebinningTool
 from statistical_interference.drawer import Visualization, DrawModel
 
 
 def fit_histograms(filename=""):
     print(f"Starting fitting process using input file: {filename}")
+    
+    ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
 
     os.makedirs("statistical_data", exist_ok=True)
 
@@ -40,7 +42,7 @@ def fit_histograms(filename=""):
     channel.SetData("4j1b_pseudodata", input_file)
     channel.SetStatErrorConfig(0.001, "Gaussian")
 
-    ttbar = AGC_Sample("ttbar", "4j1b_ttbar", input_file)
+    ttbar = AGCSample("ttbar", "4j1b_ttbar", input_file)
     ttbar.SetSystematicsInputFile(
         input_file
     )  # if use SetInputFile -> change input file for nominal histogram
@@ -48,9 +50,8 @@ def fit_histograms(filename=""):
 
     ttbar.AddOverallSys(lumi_systematics)
     ttbar.ActivateStatError()  # ROOT does not have DisableStatError() method, so we have to keep this :(
-    ttbar.AddNormPlusShapeHistoSys(
-        "ME_variation", histoname_up="4j1b_ttbar_ME_var"
-    )  # "histogram_up" can be skipped here
+    # "histogram_down" can be skipped here:
+    ttbar.AddNormPlusShapeHistoSys("ME_variation", histoname_up="4j1b_ttbar_ME_var")
     ttbar.AddNormPlusShapeHistoSys(
         "PS_variation", histoname_up="4j1b_ttbar_PS_var"
     )  # histogram path is specified as "" in default case
@@ -88,7 +89,7 @@ def fit_histograms(filename=""):
     ttbar.AddNormFactor("ttbar_norm", 1, 0, 10)
     channel.AddSample(ttbar)
 
-    wjets = AGC_Sample("wjets", "4j1b_wjets", input_file)
+    wjets = AGCSample("wjets", "4j1b_wjets", input_file)
     wjets.SetSystematicsInputFile(input_file)
     wjets.ActivateStatError()
     wjets.AddOverallSys(lumi_systematics)
@@ -125,7 +126,7 @@ def fit_histograms(filename=""):
     )
     channel.AddSample(wjets)
 
-    single_top_s_chan = AGC_Sample(
+    single_top_s_chan = AGCSample(
         "single_top_s", "4j1b_single_top_s_chan", input_file
     )
     single_top_s_chan.SetSystematicsInputFile(input_file)
@@ -160,7 +161,7 @@ def fit_histograms(filename=""):
 
     channel.AddSample(single_top_s_chan)
 
-    single_top_t_chan = AGC_Sample(
+    single_top_t_chan = AGCSample(
         "single_top_t", "4j1b_single_top_t_chan", input_file
     )
     single_top_t_chan.SetSystematicsInputFile(input_file)
@@ -195,7 +196,7 @@ def fit_histograms(filename=""):
 
     channel.AddSample(single_top_t_chan)
 
-    single_top_tW = AGC_Sample(
+    single_top_tW = AGCSample(
         "single_top_tW", "4j1b_single_top_tW", input_file
     )
     single_top_tW.SetSystematicsInputFile(input_file)
@@ -236,7 +237,7 @@ def fit_histograms(filename=""):
     channel_2b.SetData("4j2b_pseudodata", input_file)
     channel_2b.SetStatErrorConfig(0.001, "Gaussian")
 
-    ttbar = AGC_Sample("ttbar", "4j2b_ttbar", input_file)
+    ttbar = AGCSample("ttbar", "4j2b_ttbar", input_file)
     ttbar.AddOverallSys(lumi_systematics)
     ttbar.SetSystematicsInputFile(input_file)
     ttbar.ActivateStatError()
@@ -280,7 +281,7 @@ def fit_histograms(filename=""):
     ttbar.AddNormFactor("ttbar_norm", 1, 0, 10)
     channel_2b.AddSample(ttbar)
 
-    wjets = AGC_Sample("wjets", "4j2b_wjets", input_file)
+    wjets = AGCSample("wjets", "4j2b_wjets", input_file)
     wjets.SetSystematicsInputFile(input_file)
     wjets.ActivateStatError()
     wjets.AddOverallSys(lumi_systematics)
@@ -317,7 +318,7 @@ def fit_histograms(filename=""):
     )
     channel_2b.AddSample(wjets)
 
-    single_top_s_chan = AGC_Sample(
+    single_top_s_chan = AGCSample(
         "single_top_s", "4j2b_single_top_s_chan", input_file
     )
     single_top_s_chan.SetSystematicsInputFile(input_file)
@@ -351,7 +352,7 @@ def fit_histograms(filename=""):
     )
     channel_2b.AddSample(single_top_s_chan)
 
-    single_top_t_chan = AGC_Sample(
+    single_top_t_chan = AGCSample(
         "single_top_t", "4j2b_single_top_t_chan", input_file
     )
     single_top_t_chan.SetSystematicsInputFile(input_file)
@@ -386,7 +387,7 @@ def fit_histograms(filename=""):
 
     channel_2b.AddSample(single_top_t_chan)
 
-    single_top_tW = AGC_Sample(
+    single_top_tW = AGCSample(
         "single_top_tW", "4j2b_single_top_tW", input_file
     )
     single_top_tW.ActivateStatError()
@@ -437,10 +438,10 @@ def fit_histograms(filename=""):
 
     # Perform the fit
     result = pdf.fitTo(
-        ws.data("obsData"),
-        ROOT.RooFit.Save(),
-        ROOT.RooFit.PrintLevel(-1),
-        ROOT.RooFit.GlobalObservables(globalObservables),
+        ws["obsData"],
+        Save=True,
+        PrintLevel=-1,
+        GlobalObservables=globalObservables,
     )
 
     vis = Visualization()
@@ -462,10 +463,5 @@ def fit_histograms(filename=""):
 
     # save fit results to ROOT file
 
-    file = ROOT.TFile("fitResults.root", "RECREATE")
-
-    result.Write("fitResult")
-
-    file.Close()
-
-    result.Print()
+    with ROOT.TFile.Open("fitResults.root", "RECREATE") as file:
+            result.Write("fitResult")
