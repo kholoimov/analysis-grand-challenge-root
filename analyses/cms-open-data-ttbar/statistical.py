@@ -1,9 +1,8 @@
 import ROOT
 import os
-from statistical_interference.agc_sample import AGCSample
-from statistical_interference.rebinning_tool import RebinningTool
-from statistical_interference.drawer import Visualization, DrawModel
-
+from statistical_inference.agc_sample import AGCSample
+from statistical_inference.rebinning_tool import RebinningTool
+from statistical_inference.drawer import Visualization, DrawModel
 
 def fit_histograms(filename=""):
     print(f"Starting fitting process using input file: {filename}")

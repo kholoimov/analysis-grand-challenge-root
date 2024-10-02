@@ -6,16 +6,14 @@ class AGCSample(ROOT.RooStats.HistFactory.Sample):
     """
 
     def __init__(self, name, histo_name, histo_file, histo_path=""):
-        ROOT.RooStats.HistFactory.Sample.__init__(
-            self, name, histo_name, histo_file, histo_path
-        )
-        self.output_path = "statistical_data/HistFactoryExtra.root"  # since ROOT need to collect histogram from file at some point, we store created histograms in additional file
+        ROOT.RooStats.HistFactory.Sample.__init__(self, name, histo_name, histo_file, histo_path)
+        self.output_path = "statistical_data/HistFactoryExtra.root"  
+        # since ROOT need to collect histogram from file at some point, we store created histograms in additional file
         # probably can be changed in next ROOT releases -> histograms can be stored just in RAM
         self.fInputFile = ""  # default input file for all systematics
 
-    def SetSystematicsInputFile(
-        self, file
-    ):  # set same input file for all provided systematics: HistoSysm, HistoFactor, NormPlusShape
+    # set same input file for all provided systematics: HistoSysm, HistoFactor, NormPlusShape
+    def SetSystematicsInputFile(self, file):  
         self.fInputFile = file
 
     def AddHistoSys(
@@ -110,14 +108,10 @@ class AGCSample(ROOT.RooStats.HistFactory.Sample):
         if histofile_up is None:
             histofile_up = self.fInputFile
             histofile_down = self.fInputFile
-            assert (
-                histofile_up != ""
-            ), "ERROR: You not specified input file for sample"
+            assert (histofile_up != ""), "ERROR: You not specified input file for sample"
 
         if histoname_down is None:
-            self.Symmetrize_AddNormPlusShapeHistoSys(
-                name, histoname_up, histofile_up, histopath_up
-            )
+            self.Symmetrize_AddNormPlusShapeHistoSys(name, histoname_up, histofile_up, histopath_up)
         else:
             self.NonSymmetrize_AddNormPlusShapeHistoSys(
                 name,
@@ -152,35 +146,14 @@ class AGCSample(ROOT.RooStats.HistFactory.Sample):
         h_new = hist_top.Clone(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_up_clone")
         h_new.Scale(1 / norm_factor_up)
 
-        h_down = hist_nominal.Clone(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_down_clone"
-        )
+        h_down = hist_nominal.Clone(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_down_clone")
         h_down.Scale(2)
         h_down.Add(h_new, -1)
 
         output_file = ROOT.TFile(self.output_path, "UPDATE")
 
-        hist_up_name = str(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_up"
-        )
-        hist_down_name = str(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_down"
-        )
+        hist_up_name = str(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_up")
+        hist_down_name = str(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_down")
 
         h_new.Write(hist_up_name)
         h_down.Write(hist_down_name)
@@ -225,9 +198,7 @@ class AGCSample(ROOT.RooStats.HistFactory.Sample):
 
         hist_nominal_file = ROOT.TFile(self.GetInputFile(), "READ")
         hist_nominal_name = self.GetHistoName()
-        hist_nominal_directory = hist_nominal_file.GetDirectory(
-            self.GetHistoPath()
-        )
+        hist_nominal_directory = hist_nominal_file.GetDirectory(self.GetHistoPath())
         hist_nominal = hist_nominal_directory.Get(hist_nominal_name)
 
         norm_factor_up = hist_top.Integral() / hist_nominal.Integral()
@@ -239,34 +210,13 @@ class AGCSample(ROOT.RooStats.HistFactory.Sample):
         hist_down = dir_down.Get(histoname_down)
 
         norm_factor_down = hist_down.Integral() / hist_nominal.Integral()
-        h_new_down = hist_down.Clone(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_down_clone"
-        )
+        h_new_down = hist_down.Clone(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_down_clone")
         h_new_down.Scale(1 / norm_factor_down)
 
         output_file = ROOT.TFile(self.output_path, "UPDATE")
 
-        hist_up_name = str(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_up"
-        )
-        hist_down_name = str(
-            channel_name
-            + "_"
-            + str(self.GetName())
-            + "_"
-            + name
-            + "_norm_plus_shape_down"
-        )
+        hist_up_name = str(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_up")
+        hist_down_name = str(f"{channel_name}_{self.GetName()}_{name}_norm_plus_shape_down")
 
         h_new_up.Write(hist_up_name)
         h_new_down.Write(hist_down_name)

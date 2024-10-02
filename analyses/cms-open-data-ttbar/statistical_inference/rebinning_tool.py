@@ -81,12 +81,8 @@ class RebinningTool:
             original.GetXaxis().GetXmax() - right_edge
         ) / original_bin_width
 
-        if not self.is_integer(assert_check_left) or not self.is_integer(
-            assert_check_right
-        ):
-            print(
-                "Error: The left_edge and right_edge are not multiples of the original bin width"
-            )
+        if not self.is_integer(assert_check_left) or not self.is_integer(assert_check_right):
+            print("Error: The left_edge and right_edge are not multiples of the original bin width")
             return original
 
         number_of_remove_bins = (
@@ -102,9 +98,7 @@ class RebinningTool:
             left_edge,
             right_edge,
         )
-        skipped_bins_left = int(
-            (left_edge - original.GetXaxis().GetXmin()) / original_bin_width
-        )
+        skipped_bins_left = int((left_edge - original.GetXaxis().GetXmin()) / original_bin_width)
 
         for i in range(1, new_nbins + 1):
             bin_idx = i + skipped_bins_left
