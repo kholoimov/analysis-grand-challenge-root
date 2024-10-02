@@ -9,16 +9,14 @@ import ROOT
 from distributed import Client, LocalCluster, SSHCluster, get_worker
 from plotting import save_ml_plots, save_plots
 from statistical import fit_histograms
-from utils import (AGCInput, AGCResult, postprocess_results, retrieve_inputs,
-                   save_histos)
+from utils import AGCInput, AGCResult, postprocess_results, retrieve_inputs, save_histos
 
 # Using https://atlas-groupdata.web.cern.ch/atlas-groupdata/dev/AnalysisTop/TopDataPreparation/XSection-MC15-13TeV.data
 # as a reference. Values are in pb.
 XSEC_INFO = {
     "ttbar": 396.87 + 332.97,  # nonallhad + allhad, keep same x-sec for all
     "single_top_s_chan": 2.0268 + 1.2676,
-    "single_top_t_chan": (36.993 + 22.175)
-    / 0.252,  # scale from lepton filter to inclusive
+    "single_top_t_chan": (36.993 + 22.175) / 0.252,  # scale from lepton filter to inclusive
     "single_top_tW": 37.936 + 37.906,
     "wjets": 61457 * 0.252,  # e/mu+nu final states
 }
@@ -97,26 +95,22 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--statistical-validation",
         help="Run only statistical validation part of the analysis.",
-        action='store_true'
+        action="store_true",
     )
-    
+
     p.add_argument(
         "--no-fitting",
         help="Do not run statistical validation part of the analysis.",
-        action='store_true'
+        action="store_true",
     )
 
     return p.parse_args()
 
 
-def create_dask_client(
-    scheduler: str, ncores: int, hosts: str, scheduler_address: str
-) -> Client:
+def create_dask_client(scheduler: str, ncores: int, hosts: str, scheduler_address: str) -> Client:
     """Create a Dask distributed client."""
     if scheduler == "dask-local":
-        lc = LocalCluster(
-            n_workers=ncores, threads_per_worker=1, processes=True
-        )
+        lc = LocalCluster(n_workers=ncores, threads_per_worker=1, processes=True)
         return Client(lc)
 
     if scheduler == "dask-ssh":
@@ -193,11 +187,7 @@ def define_trijet_mass(df: ROOT.RDataFrame) -> ROOT.RDataFrame:
 
 
 def book_histos(
-    df: ROOT.RDataFrame,
-    process: str,
-    variation: str,
-    nevents: int,
-    inference=False
+    df: ROOT.RDataFrame, process: str, variation: str, nevents: int, inference=False
 ) -> Tuple[list[AGCResult], list[AGCResult]]:
     """Return the pair of lists of RDataFrame results pertaining to the given process and variation.
     The first list contains histograms of reconstructed HT and trijet masses.
@@ -240,9 +230,7 @@ def book_histos(
             "Muon_pt > 30 && abs(Muon_eta) < 2.1 && Muon_sip3d < 4 && Muon_tightId && Muon_pfRelIso04_all < 0.15",
         )
         .Filter("Sum(Electron_mask) + Sum(Muon_mask) == 1")
-        .Define(
-            "Jet_mask", "Jet_pt > 30 && abs(Jet_eta) < 2.4 && Jet_jetId == 6"
-        )
+        .Define("Jet_mask", "Jet_pt > 30 && abs(Jet_eta) < 2.4 && Jet_jetId == 6")
         .Filter("Sum(Jet_mask) >= 4")
     )
 
@@ -279,9 +267,7 @@ def book_histos(
 
     # Book histograms and, if needed, their systematic variations
     results = []
-    for df, observable, region in zip(
-        [df4j1b, df4j2b], ["HT", "Trijet_mass"], ["4j1b", "4j2b"]
-    ):
+    for df, observable, region in zip([df4j1b, df4j2b], ["HT", "Trijet_mass"], ["4j1b", "4j2b"]):
         histo_model = ROOT.RDF.TH1DModel(
             name=f"{region}_{process}_{variation}",
             title=process,
@@ -394,11 +380,7 @@ def run_mt(
     for input in inputs:
         df = ROOT.RDataFrame("Events", input.paths)
         hist_list, ml_hist_list = book_histos(
-            df,
-            input.process,
-            input.variation,
-            input.nevents,
-            inference=args.inference
+            df, input.process, input.variation, input.nevents, inference=args.inference
         )
         results += hist_list
         ml_results += ml_hist_list
@@ -433,12 +415,8 @@ def run_distributed(
     else:
         ROOT.RDF.Experimental.Distributed.initialize(load_cpp)
 
-    scheduler_address = (
-        args.scheduler_address if args.scheduler_address else ""
-    )
-    with create_dask_client(
-        args.scheduler, args.ncores, args.hosts, scheduler_address
-    ) as client:
+    scheduler_address = args.scheduler_address if args.scheduler_address else ""
+    with create_dask_client(args.scheduler, args.ncores, args.hosts, scheduler_address) as client:
         for input in inputs:
             df = ROOT.RDF.Experimental.Distributed.Dask.RDataFrame(
                 "Events",
@@ -456,11 +434,7 @@ def run_distributed(
                 ]
             )
             hist_list, ml_hist_list = book_histos(
-                df,
-                input.process,
-                input.variation,
-                input.nevents,
-                inference=args.inference
+                df, input.process, input.variation, input.nevents, inference=args.inference
             )
             results += hist_list
             ml_results += ml_hist_list
@@ -490,15 +464,15 @@ def main() -> None:
     if args.verbose:
         # Set higher RDF verbosity for the rest of the program.
         # To only change the verbosity in a given scope, use ROOT.Experimental.RLogScopedVerbosity.
-        ROOT.Detail.RDF.RDFLogChannel().SetVerbosity(
-            ROOT.Experimental.ELogLevel.kInfo
-        )
+        ROOT.Detail.RDF.RDFLogChannel().SetVerbosity(ROOT.Experimental.ELogLevel.kInfo)
 
     if args.statistical_validation:
         fit_histograms(filename=args.output)
         return
 
-    inputs: list[AGCInput] = retrieve_inputs(args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache)
+    inputs: list[AGCInput] = retrieve_inputs(
+        args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache
+    )
     results: list[AGCResult] = []
     ml_results: list[AGCResult] = []
 
