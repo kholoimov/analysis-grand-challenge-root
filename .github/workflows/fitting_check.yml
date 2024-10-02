@@ -40,16 +40,11 @@ jobs:
           if grep -q "Test failed: Histograms validation output does not match expected result." output.txt; then
             echo "Histograms validation failed."
             echo "RESULT_HISTOGRAMS=fail" >> $GITHUB_ENV
+            exit 1
           else
             echo "Histograms validation passed."
             echo "RESULT_HISTOGRAMS=pass" >> $GITHUB_ENV
           fi
-
-      - name: Histograms validation
-        if: env.RESULT_HISTOGRAMS == 'fail'
-        run: |
-          echo "Test failed: Histograms validation output does not match expected result."
-          exit 1
           
       - name: Run validation sequences for fitResults
         id: fitresults
@@ -58,14 +53,9 @@ jobs:
           if grep -q "Test failed: fitResults validation output does not match expected result." output.txt; then
             echo "fitResults validation failed."
             echo "RESULT_FITRESULTS=fail" >> $GITHUB_ENV
+            exit 1
           else
             echo "fitResults validation passed."
             echo "RESULT_FITRESULTS=pass" >> $GITHUB_ENV
           fi
-
-      - name: FitResults validation
-        if: env.RESULT_FITRESULTS == 'fail'
-        run: |
-          echo "Test failed: fitResults validation output does not match expected result."
-          exit 1
 

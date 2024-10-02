@@ -10,37 +10,18 @@
 #include "TRandom3.h"
 #include <Math/Vector4D.h>
 
-// functions creating systematic variations
-inline double random_gaus()
-{
-   thread_local std::random_device rd{};
-   thread_local std::mt19937 gen{rd()};
-   thread_local std::normal_distribution<double> d{1, 0.05};
-   return d(gen);
-}
-
-inline double predicted_gaus(std::mt19937& gen)
-{
-   std::normal_distribution<double> d{1, 0.1};
-   return d(gen);
-}
-
-inline ROOT::RVecF jet_pt_resolution(std::size_t size, int use_rng_seed)
+inline ROOT::RVecF jet_pt_resolution(const ROOT::RVecF &jet_pt)
 {
    // normal distribution with 5% variations, shape matches jets
-   ROOT::RVecF res(size);
+   ROOT::RVecF res(jet_pt.size());
 
-   if (use_rng_seed)
-   {
-      std::mt19937 gen{16123621};
-      std::generate(std::begin(res), std::end(res), [&gen]()
-                    { return predicted_gaus(gen); });
+   // The jet_pt is in GeV, so the first three digits after the comma are fairly random.
+   double mean = 1.f;
+   double sigma = 0.05f;
+   for (std::size_t i = 0; i < jet_pt.size(); ++i) {
+      res[i] = mean + ROOT::Math::gaussian_quantile(float(0.001 * (int(jet_pt[i] * 1000) % 1000)) + 0.0005, sigma);
    }
-   else
-   {
-      std::generate(std::begin(res), std::end(res), []()
-                  { return random_gaus(); });
-   }
+
    return res;
 }
 

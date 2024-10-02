@@ -100,10 +100,15 @@ def parse_args() -> argparse.Namespace:
     )
 
     p.add_argument(
-        "--validation",
-        help="Run the validation workflow with predicted RNG.",
-        type=int,
-        default=0,
+        "--statistical-validation",
+        help="Run only statistical validation part of the analysis.",
+        action='store_true'
+    )
+    
+    p.add_argument(
+        "--no-fitting",
+        help="Do not run statistical validation part of the analysis.",
+        action='store_true'
     )
 
     return p.parse_args()
@@ -197,8 +202,7 @@ def book_histos(
     process: str,
     variation: str,
     nevents: int,
-    inference=False,
-    use_rng_seed=False,
+    inference=False
 ) -> Tuple[list[AGCResult], list[AGCResult]]:
     """Return the pair of lists of RDataFrame results pertaining to the given process and variation.
     The first list contains histograms of reconstructed HT and trijet masses.
@@ -209,11 +213,6 @@ def book_histos(
     xsec_weight = x_sec * lumi / nevents
     df = df.Define("Weights", str(xsec_weight))  # default weights
 
-    if use_rng_seed:
-        str_seed = "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt.size(), 1)}"
-    else:
-        str_seed = "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt.size(), 0)}"
-
     if variation == "nominal":
         # Jet_pt variations definition
         # pt_scale_up() and pt_res_up(jet_pt) return scaling factors applying to jet_pt
@@ -221,7 +220,7 @@ def book_histos(
         # pt_res_up(jet_pt) - jet resolution systematic
         df = df.Vary(
             "Jet_pt",
-            str_seed,
+            "ROOT::RVec<ROOT::RVecF>{Jet_pt*pt_scale_up(), Jet_pt*jet_pt_resolution(Jet_pt)}",
             ["pt_scale_up", "pt_res_up"],
         )
 
@@ -405,8 +404,7 @@ def run_mt(
             input.process,
             input.variation,
             input.nevents,
-            inference=args.inference,
-            use_rng_seed=args.validation,
+            inference=args.inference
         )
         results += hist_list
         ml_results += ml_hist_list
@@ -472,8 +470,7 @@ def run_distributed(
                 input.process,
                 input.variation,
                 input.nevents,
-                inference=args.inference,
-                use_rng_seed=args.validation,
+                inference=args.inference
             )
             results += hist_list
             ml_results += ml_hist_list
@@ -515,6 +512,10 @@ def main() -> None:
             ROOT.Experimental.ELogLevel.kInfo
         )
 
+    if args.statistical_validation:
+        fit_histograms(filename=args.output)
+        return
+
     inputs: list[AGCInput] = retrieve_inputs(
         args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache
     )
@@ -548,7 +549,8 @@ def main() -> None:
             f"Result histograms from ML inference step saved in file {output_fname}"
         )
 
-    fit_histograms(filename=args.output)
+    if not args.no_fitting:
+        fit_histograms(filename=args.output)
 
 
 if __name__ == "__main__":

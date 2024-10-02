@@ -465,3 +465,6 @@ def fit_histograms(filename=""):
 
     with ROOT.TFile.Open("fitResults.root", "RECREATE") as file:
             result.Write("fitResult")
+
+
+    result.Print()

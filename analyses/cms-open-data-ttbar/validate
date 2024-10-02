@@ -28,31 +28,27 @@ check_status() {
 
 # Step 1: Run Analysis
 echo "Running analysis with ${NUM_FILES} file(s)..."
-python analysis.py --n-max-files-per-sample ${NUM_FILES} --remote-data-prefix="${REMOTE_DATA_PREFIX}" --validation 1
+python analysis.py --n-max-files-per-sample ${NUM_FILES} --remote-data-prefix="${REMOTE_DATA_PREFIX}" --no-fitting
 check_status "Analysis failed"
 
-# Step 2: Run validation sequences
-echo "Running validation sequences..."
-python validate_histograms.py --histos "${HISTOS_FILE}" --reference "${REFERENCE_HISTOS}" > output_histograms.txt
-check_status "Histogram validation failed"
-
-python reference/fitResults/validate_fit_result.py > output_fit_results.txt
-check_status "FitResults validation failed"
-
-# Step 3: Compare fitResults output with expected
-echo "Comparing fitResults with expected results..."
-diff output_fit_results.txt "${FIT_REFERENCE}"
-if [ $? -ne 0 ]; then
-  echo "Test failed: fitResults validation output does not match expected result."
+# Step 2: Run Validation for histograms
+echo "Running histograms validation"
+# Run the validation and check if grep produces matching output
+if python validate_histograms.py --histos "${HISTOS_FILE}" --reference "${REFERENCE_HISTOS}" | grep "All good!"; then
+  echo "Histograms validation passed: Output matches expected results."
+else
+  echo "Test failed: Histograms validation output does not match expected result."
   exit 1
 fi
 
-# Step 4: Compare histograms validation output with expected
-echo "Comparing histograms validation with expected results..."
-diff output_histograms.txt "${HISTOGRAMS_REFERENCE}"
-if [ $? -ne 0 ]; then
-  echo "Test failed: Histograms validation output does not match expected result."
+# Step 3: Run Validation for fitting
+echo "Running fitting part of analysis"
+python analysis.py --n-max-files-per-sample ${NUM_FILES} --remote-data-prefix="${REMOTE_DATA_PREFIX}" --statistical-validation 
+if python ./reference/fitResults/validate_fit_result.py  --n-files-per-sample ${NUM_FILES} | grep "ERROR: Comparison failed."; then
+  echo "Test failed: fitResults validation output does not match expected result."
   exit 1
+else
+  echo "Test passed: fitResults validation output matches expected result."
 fi
 
 echo "All tests passed successfully."
