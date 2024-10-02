@@ -1,5 +1,6 @@
 import ROOT
 
+
 class AGCSample(ROOT.RooStats.HistFactory.Sample):
     """
     class created to cover extra functions, which are implemented in cabinetry, but missed in cabinetry

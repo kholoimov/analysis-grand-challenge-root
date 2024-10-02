@@ -7,11 +7,13 @@
 # A reference file for N_FILES_MAX_PER_SAMPLE=1 is available in directory `reference/`.
 
 from __future__ import annotations
+
 import argparse
-from collections import defaultdict
 import json
-import numpy as np
 import sys
+from collections import defaultdict
+
+import numpy as np
 import uproot
 
 

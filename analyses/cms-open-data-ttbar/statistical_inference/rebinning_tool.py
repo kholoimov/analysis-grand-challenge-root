@@ -1,5 +1,6 @@
-import ROOT
 import os
+
+import ROOT
 
 
 class RebinningTool:

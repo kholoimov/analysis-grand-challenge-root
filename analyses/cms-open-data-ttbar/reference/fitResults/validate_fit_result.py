@@ -1,6 +1,6 @@
-import ROOT
-
 import argparse
+
+import ROOT
 
 # Create an argument parser
 parser = argparse.ArgumentParser(description="Run the fitting part of the analysis.")

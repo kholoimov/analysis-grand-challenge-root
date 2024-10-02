@@ -1,6 +1,6 @@
 [tool.ruff]
 # ignore long lines
-ignore = ["E501", "N806"]
+ignore = ["E501", "N806", "N802"]
 select = ["E", "F", "I", "N"]
 
 [tool.mypy]

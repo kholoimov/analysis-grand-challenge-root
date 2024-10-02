@@ -3,19 +3,14 @@ import multiprocessing
 from pathlib import Path
 from time import time
 from typing import Tuple
-from statistical import fit_histograms
 
-from distributed import Client, get_worker, LocalCluster, SSHCluster
 import ml
-from plotting import save_ml_plots, save_plots
 import ROOT
-from utils import (
-    AGCInput,
-    AGCResult,
-    postprocess_results,
-    retrieve_inputs,
-    save_histos,
-)
+from distributed import Client, LocalCluster, SSHCluster, get_worker
+from plotting import save_ml_plots, save_plots
+from statistical import fit_histograms
+from utils import (AGCInput, AGCResult, postprocess_results, retrieve_inputs,
+                   save_histos)
 
 # Using https://atlas-groupdata.web.cern.ch/atlas-groupdata/dev/AnalysisTop/TopDataPreparation/XSection-MC15-13TeV.data
 # as a reference. Values are in pb.
