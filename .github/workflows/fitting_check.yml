@@ -31,7 +31,7 @@ jobs:
         run: |
           source root/bin/thisroot.sh
           cd analyses/cms-open-data-ttbar/
-          ./validate | tee output.txt
+          ./validate 5 | tee output.txt
 
       - name: Compare histograms validation output with expected
         id: histograms

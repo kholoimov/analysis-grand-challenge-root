@@ -15,8 +15,6 @@ fi
 REMOTE_DATA_PREFIX='root://eospublic.cern.ch//eos/root-eos/AGC'
 HISTOS_FILE="histograms.root"
 REFERENCE_HISTOS="reference/histos_${NUM_FILES}_file_per_process.json"
-FIT_REFERENCE="../../.github/workflows/validation/fitResuts_${NUM_FILES}_file_validation_reference.yml"
-HISTOGRAMS_REFERENCE="../../.github/workflows/validation/histograms_${NUM_FILES}_file_validation_reference.yml"
 
 # Function to check the status of the previous command and exit if failed
 check_status() {
