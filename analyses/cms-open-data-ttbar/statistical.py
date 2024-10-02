@@ -19,9 +19,7 @@ def fit_histograms(filename=""):
     rebinning_tool.set_output_path("statistical_data/temp_histos.root")
     rebinning_tool.apply_rebinning()
 
-    file = ROOT.TFile(
-        "statistical_data/HistFactoryExtra.root", "RECREATE"
-    )  # cleaning the file
+    file = ROOT.TFile("statistical_data/HistFactoryExtra.root", "RECREATE")  # cleaning the file
     file.Close()  # create separate file for each file -> two much files
 
     input_file = "statistical_data/temp_histos.root"  # input file for futher defined histograms
@@ -31,9 +29,7 @@ def fit_histograms(filename=""):
     meas.SetLumiRelErr(0.0)
 
     # ! main difference
-    lumi_systematics = (
-        ROOT.RooStats.HistFactory.OverallSys()
-    )  # we define it one time -> dont need to redefine it
+    lumi_systematics = (ROOT.RooStats.HistFactory.OverallSys())  # we define it one time -> dont need to redefine it
     lumi_systematics.SetName("Lumi")
     lumi_systematics.SetLow(0.97)
     lumi_systematics.SetHigh(1.03)
@@ -43,9 +39,7 @@ def fit_histograms(filename=""):
     channel.SetStatErrorConfig(0.001, "Gaussian")
 
     ttbar = AGCSample("ttbar", "4j1b_ttbar", input_file)
-    ttbar.SetSystematicsInputFile(
-        input_file
-    )  # if use SetInputFile -> change input file for nominal histogram
+    ttbar.SetSystematicsInputFile(input_file)  # if use SetInputFile -> change input file for nominal histogram
     # we can put input file from sample data definition as default
 
     ttbar.AddOverallSys(lumi_systematics)
@@ -445,21 +439,12 @@ def fit_histograms(filename=""):
     )
 
     vis = Visualization()
-    vis.CreateAndSaveResultsPicture(
-        "fitted_parameters.png", ws
-    )  # Parameters fit result
+    vis.CreateAndSaveResultsPicture("fitted_parameters.png", ws)  # Parameters fit result
 
-    vis.DrawCorrelationMatrix(
-        "correlation_matrix.png", result
-    )  # Correlation matrix
+    vis.DrawCorrelationMatrix("correlation_matrix.png", result)  # Correlation matrix
 
     md = DrawModel(meas, ws)
     md.Draw(result)
-
-    md.GetChannelPrefitGraph(0).SetTitle(
-        "4j1b_CR PREFIT GRAPH"
-    )  # each graph can be accessed from outside and modified
-    md.GetChannelPrefitGraph(0).GetYaxis().SetTitle("number of entries")
 
     # save fit results to ROOT file
 

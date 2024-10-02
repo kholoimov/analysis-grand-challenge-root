@@ -276,8 +276,7 @@ def book_histos(
     # Only one b-tagged region required
     # The observable is the total transvesre momentum
     # fmt: off
-    df4j1b = df.Filter("Sum(Jet_btagCSVV2_cut > 0.5) == 1")\
-               .Define("HT", "Sum(Jet_pt_cut)")
+    df4j1b = df.Filter("Sum(Jet_btagCSVV2_cut > 0.5) == 1").Define("HT", "Sum(Jet_pt_cut)")
     # fmt: on
 
     # Define trijet_mass observable for the 4j2b region (this one is more complicated)
@@ -413,17 +412,13 @@ def run_mt(
         if r.should_vary:
             r.histo = ROOT.RDF.Experimental.VariationsFor(r.histo)
 
-    print(
-        f"Building the computation graphs took {time() - program_start:.2f} seconds"
-    )
+    print(f"Building the computation graphs took {time() - program_start:.2f} seconds")
 
     # Run the event loops for all processes and variations here
     run_graphs_start = time()
     ROOT.RDF.RunGraphs([r.nominal_histo for r in results + ml_results])
 
-    print(
-        f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds"
-    )
+    print(f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds")
 
 
 def run_distributed(
@@ -477,23 +472,15 @@ def run_distributed(
 
         for r in results + ml_results:
             if r.should_vary:
-                r.histo = ROOT.RDF.Experimental.Distributed.VariationsFor(
-                    r.histo
-                )
+                r.histo = ROOT.RDF.Experimental.Distributed.VariationsFor(r.histo)
 
-        print(
-            f"Building the computation graphs took {time() - program_start:.2f} seconds"
-        )
+        print(f"Building the computation graphs took {time() - program_start:.2f} seconds")
 
         # Run the event loops for all processes and variations here
         run_graphs_start = time()
-        ROOT.RDF.Experimental.Distributed.RunGraphs(
-            [r.nominal_histo for r in results + ml_results]
-        )
+        ROOT.RDF.Experimental.Distributed.RunGraphs([r.nominal_histo for r in results + ml_results])
 
-        print(
-            f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds"
-        )
+        print(f"Executing the computation graphs took {time() - run_graphs_start:.2f} seconds")
 
 
 def main() -> None:
@@ -516,9 +503,7 @@ def main() -> None:
         fit_histograms(filename=args.output)
         return
 
-    inputs: list[AGCInput] = retrieve_inputs(
-        args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache
-    )
+    inputs: list[AGCInput] = retrieve_inputs(args.n_max_files_per_sample, args.remote_data_prefix, args.data_cache)
     results: list[AGCResult] = []
     ml_results: list[AGCResult] = []
 
@@ -545,9 +530,7 @@ def main() -> None:
         save_ml_plots(ml_results)
         output_fname = args.output.split(".root")[0] + "_ml_inference.root"
         save_histos([r.histo for r in ml_results], output_fname=output_fname)
-        print(
-            f"Result histograms from ML inference step saved in file {output_fname}"
-        )
+        print(f"Result histograms from ML inference step saved in file {output_fname}")
 
     if not args.no_fitting:
         fit_histograms(filename=args.output)
