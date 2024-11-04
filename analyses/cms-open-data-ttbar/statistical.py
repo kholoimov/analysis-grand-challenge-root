@@ -82,7 +82,7 @@ def fit_histograms(filename=""):
         histoname_down="4j1b_ttbar_btag_var_3_down",
     )
     ttbar.AddNormFactor("ttbar_norm", 1, 0, 10)
-    channel.AddSample(ttbar)
+    channel.AddSample(ttbar.GetHistFactorySample())
 
     wjets = AGCSample("wjets", "4j1b_wjets", input_file)
     wjets.SetSystematicsInputFile(input_file)
@@ -119,7 +119,7 @@ def fit_histograms(filename=""):
         histoname_up="4j1b_wjets_scale_var_up",
         histoname_down="4j1b_wjets_scale_var_down",
     )
-    channel.AddSample(wjets)
+    channel.AddSample(wjets.GetHistFactorySample())
 
     single_top_s_chan = AGCSample(
         "single_top_s", "4j1b_single_top_s_chan", input_file
@@ -154,7 +154,7 @@ def fit_histograms(filename=""):
         histoname_down="4j1b_single_top_s_chan_btag_var_3_down",
     )
 
-    channel.AddSample(single_top_s_chan)
+    channel.AddSample(single_top_s_chan.GetHistFactorySample())
 
     single_top_t_chan = AGCSample(
         "single_top_t", "4j1b_single_top_t_chan", input_file
@@ -189,7 +189,7 @@ def fit_histograms(filename=""):
         histoname_down="4j1b_single_top_t_chan_btag_var_3_down",
     )
 
-    channel.AddSample(single_top_t_chan)
+    channel.AddSample(single_top_t_chan.GetHistFactorySample())
 
     single_top_tW = AGCSample(
         "single_top_tW", "4j1b_single_top_tW", input_file
@@ -224,7 +224,7 @@ def fit_histograms(filename=""):
         histoname_down="4j1b_single_top_tW_btag_var_3_down",
     )
 
-    channel.AddSample(single_top_tW)
+    channel.AddSample(single_top_tW.GetHistFactorySample())
 
     meas.AddChannel(channel)
 
@@ -274,7 +274,7 @@ def fit_histograms(filename=""):
         histoname_down="4j2b_ttbar_btag_var_3_down",
     )
     ttbar.AddNormFactor("ttbar_norm", 1, 0, 10)
-    channel_2b.AddSample(ttbar)
+    channel_2b.AddSample(ttbar.GetHistFactorySample())
 
     wjets = AGCSample("wjets", "4j2b_wjets", input_file)
     wjets.SetSystematicsInputFile(input_file)
@@ -311,7 +311,7 @@ def fit_histograms(filename=""):
         histoname_up="4j2b_wjets_scale_var_up",
         histoname_down="4j2b_wjets_scale_var_down",
     )
-    channel_2b.AddSample(wjets)
+    channel_2b.AddSample(wjets.GetHistFactorySample())
 
     single_top_s_chan = AGCSample(
         "single_top_s", "4j2b_single_top_s_chan", input_file
@@ -345,7 +345,7 @@ def fit_histograms(filename=""):
         histoname_up="4j2b_single_top_s_chan_btag_var_3_up",
         histoname_down="4j2b_single_top_s_chan_btag_var_3_down",
     )
-    channel_2b.AddSample(single_top_s_chan)
+    channel_2b.AddSample(single_top_s_chan.GetHistFactorySample())
 
     single_top_t_chan = AGCSample(
         "single_top_t", "4j2b_single_top_t_chan", input_file
@@ -380,7 +380,7 @@ def fit_histograms(filename=""):
         histoname_down="4j2b_single_top_t_chan_btag_var_3_down",
     )
 
-    channel_2b.AddSample(single_top_t_chan)
+    channel_2b.AddSample(single_top_t_chan.GetHistFactorySample())
 
     single_top_tW = AGCSample(
         "single_top_tW", "4j2b_single_top_tW", input_file
@@ -415,7 +415,7 @@ def fit_histograms(filename=""):
         histoname_down="4j2b_single_top_tW_btag_var_3_down",
     )
 
-    channel_2b.AddSample(single_top_tW)
+    channel_2b.AddSample(single_top_tW.GetHistFactorySample())
     meas.AddChannel(channel_2b)
 
     meas.SetPOI("ttbar_norm")
