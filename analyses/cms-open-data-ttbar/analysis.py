@@ -94,7 +94,7 @@ def parse_args() -> argparse.Namespace:
 
     p.add_argument(
         "--statistical-validation",
-        help="Run only statistical validation part of the analysis.",
+        help = argparse.SUPPRESS,
         action="store_true",
     )
 

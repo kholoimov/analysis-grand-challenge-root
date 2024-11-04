@@ -13,13 +13,13 @@
 inline ROOT::RVecF jet_pt_resolution(const ROOT::RVecF &jet_pt)
 {
    // normal distribution with 5% variations, shape matches jets
-   ROOT::RVecF res(jet_pt.size());
 
-   // The jet_pt is in GeV, so the first three digits after the comma are fairly random.
-   double mean = 1.f;
-   double sigma = 0.05f;
+   // We need to create some pseudo-randomness, it should be thread-safe and at the same time do not depend on RNG. We use the fact that [jet_pt is in GeV....]. 
+   // We then use the gaussian quantile to compute the resolution according to the input mean and sigma, using the random bits from the floating-point values.
+   double mean = 1.;
+   double sigma = 0.05;
    for (std::size_t i = 0; i < jet_pt.size(); ++i) {
-      res[i] = mean + ROOT::Math::gaussian_quantile(float(0.001 * (int(jet_pt[i] * 1000) % 1000)) + 0.0005, sigma);
+      res[i] = mean + ROOT::Math::gaussian_quantile(static_cast<double>(0.001 * (static_cast<int>(jet_pt[i] * 1000) % 1000)) + 0.0005, sigma);
    }
 
    return res;
